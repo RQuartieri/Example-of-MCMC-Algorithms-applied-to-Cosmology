@@ -8,8 +8,8 @@ def target_distribution(x):
 
 def proposal_distribution(x, step_size=0.5):
     """Proposal distribution: normal distribution centered at x"""
-    return np.random.normal(x, step_size)
-    #return np.random.uniform(x, step_size)
+    #return np.random.normal(x, step_size)
+    return np.random.uniform(-2,2)
 
 def metropolis_hastings(iterations, initial_value, target_dist, proposal_dist):
     x = initial_value
