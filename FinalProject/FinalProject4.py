@@ -38,6 +38,9 @@ param_init = {
     "ENnu": 3.046
 }
 
+print("# Model parameters: ")
+cosmo.params_log_all()
+
 for param, value in param_init.items():
     setattr(cosmo.props, param, value)
 

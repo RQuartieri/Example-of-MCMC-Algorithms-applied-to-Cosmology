@@ -7,6 +7,8 @@ Ncm.cfg_init()
 
 # 1. Define a fiducial cosmological model (ΛCDM)
 fiducial_cosmo = Nc.HICosmoDEXcdm.new()
+print("# Model parameters: ")
+fiducial_cosmo.params_log_all()
 #fiducial_cosmo.props.Omegab = 0.05  # Baryon density
 #fiducial_cosmo.props.Omegac = 0.25  # Cold dark matter density
 #fiducial_cosmo.props.H0 = 70.0      # Hubble constant
@@ -14,12 +16,12 @@ fiducial_cosmo = Nc.HICosmoDEXcdm.new()
 #fiducial_cosmo.props.Tgamma0 = 2.7255  # CMB temperature
 
 # 2. Create a distance object and prepare it for the fiducial cosmology
-dist = Nc.Distance.new(2.0)  # Maximum redshift for distance calculations
+dist = Nc.Distance.new(10.0)  # Maximum redshift for distance calculations
 dist.prepare(fiducial_cosmo)
 
 # 3. Generate a range of redshifts
 z_min = 0.01
-z_max = 1.5
+z_max = 10
 num_data_points = 150
 z = np.linspace(z_min, z_max, num_data_points)
 
@@ -40,7 +42,8 @@ plt.ylabel("Luminosity Distance (Mpc)")
 plt.title("Mock Supernova Data")
 plt.legend()
 plt.grid()
-plt.show()
+plt.savefig("FinalProject/Figs/MockData", dpi=300)
+#plt.show()
 
 # 7. Save the mock data to a file (optional)
 mock_data = np.column_stack((z, mock_d_lum, noise_level))
