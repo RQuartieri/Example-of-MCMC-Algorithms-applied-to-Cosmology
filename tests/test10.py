@@ -32,7 +32,7 @@ dist = Nc.Distance.new(1.5)
 dist.prepare(true_cosmo)
 data = np.array([dist.luminosity(true_cosmo, z_i) for z_i in z]) + np.random.normal(0, 0.1, size=30)
 
-iterations = 2500
+iterations = 2600
 # Metropolis-Hastings algorithm 
 def Metropolis_Hastings(iterations, init_Omegab=true_Omegab, init_H0=true_H0, step_size=0.2):
     H0_chain = [init_H0]
