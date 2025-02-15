@@ -7,8 +7,9 @@ Ncm.cfg_init()
 
 # 1. Define a fiducial cosmological model (ΛCDM)
 fiducial_cosmo = Nc.HICosmoDEXcdm.new()
-print("# Model parameters: ")
-fiducial_cosmo.params_log_all()
+#print("# Model parameters: ")
+#fiducial_cosmo.params_log_all()
+
 #fiducial_cosmo.props.Omegab = 0.05  # Baryon density
 #fiducial_cosmo.props.Omegac = 0.25  # Cold dark matter density
 #fiducial_cosmo.props.H0 = 70.0      # Hubble constant
@@ -21,7 +22,7 @@ dist.prepare(fiducial_cosmo)
 
 # 3. Generate a range of redshifts
 z_min = 0.01
-z_max = 10
+z_max = 2
 num_data_points = 150
 z = np.linspace(z_min, z_max, num_data_points)
 

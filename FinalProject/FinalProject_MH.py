@@ -4,6 +4,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd  # Import pandas for DataFrame functionality
 from numcosmo_py import Nc, Ncm
+import subprocess
+
+subprocess.run(["python3", "FinalProject/Mockdata.py"])
 
 # Initialize the NumCosmo library
 Ncm.cfg_init()
@@ -24,8 +27,20 @@ error = mock_data[:, 2]  # Error in luminosity distance
 # Create a cosmological model (ΛCDM)
 cosmo = Nc.HICosmoDEXcdm.new()
 
-# Print the default parameters of the cosmological model
-print("# Default model parameters: ")
+# Set initial values for parameters
+param_init = {
+    "H0": 70.0,
+    "Omegab": 0.25,
+    "Omegac": 0.05,
+    "Omegax": 0.7,
+}
+
+# Set the initial values in the cosmology object
+for param, value in param_init.items():
+    setattr(cosmo.props, param, value)
+
+# Print the initial parameters
+print("# Initial model parameters: ")
 cosmo.params_log_all()
 
 # Define a custom likelihood function
@@ -54,11 +69,11 @@ likelihood = CustomLikelihood(z, d_lum, error, cosmo)
 
 # Metropolis-Hastings Algorithm
 iterations = 100000
-step_size = 0.01
+step_size = 0.001
 
 # Store parameter chains
 params_to_estimate = ["H0", "Omegab", "Omegac", "Omegax"]
-param_chains = {param: [getattr(cosmo.props, param)] for param in params_to_estimate}
+param_chains = {param: [param_init[param]] for param in params_to_estimate}
 likelihood_chain = [likelihood.do_eval(None)]
 
 def enforce_omega_constraints(params):
@@ -117,22 +132,46 @@ samples_array = np.column_stack([param_samples[param] for param in params_to_est
 # Create a DataFrame for easier plotting
 samples_df = pd.DataFrame(samples_array, columns=params_to_estimate)
 
-# Plot marginal distributions and correlations
-plt.figure(figsize=(12, 12))
+# Compute mean and standard deviation for each parameter
+param_estimates = {param: (np.mean(values), np.std(values)) for param, values in param_samples.items()}
+
+# Plot 1: Marginal Distributions with Legends
+plt.figure(figsize=(12, 8))
+for i, param in enumerate(params_to_estimate):
+    plt.subplot(2, 2, i + 1)
+    sns.histplot(samples_df[param], kde=True, color='blue', stat='density', label='Posterior')
+    
+    # Add vertical lines for initial and estimated values
+    initial_value = param_init[param]  # Use the initial value from param_init
+    estimated_value, _ = param_estimates[param]
+    
+    plt.axvline(initial_value, color='red', linestyle='--', label=f"Initial: {initial_value:.4f}")
+    plt.axvline(estimated_value, color='green', linestyle='--', label=f"Estimated: {estimated_value:.4f}")
+    
+    plt.title(f"Distribution of {param}")
+    plt.xlabel(param)
+    plt.ylabel("Density")
+    plt.legend()
+
+plt.tight_layout()
+plt.savefig("FinalProject/Figs/parameter_distributions.png", dpi=300) 
+#plt.show()
+
+# Plot 2: Pairwise Correlations
+plt.figure(figsize=(12, 8))
 sns.pairplot(
     data=samples_df,
-    kind='hist',
-    diag_kind='kde',
-    plot_kws={'alpha': 0.5, 'edgecolor': 'none'},
-    diag_kws={'fill': True}
+    kind='scatter',
+    plot_kws={'alpha': 0.5, 'edgecolor': 'none'}
 )
-plt.suptitle("Parameter Distributions and Correlations", y=1.02)
+plt.suptitle("Pairwise Correlations", y=1.02)
 plt.tight_layout()
-plt.savefig("FinalProject/Figs/parameter_correlations.png", dpi=300)
-plt.show()
+plt.savefig("FinalProject/Figs/parameter_correlations.png", dpi=300) 
+#plt.show()
 
 # Print results
 print("\nEstimated Cosmological Parameters:")
 for param, values in param_samples.items():
     mean, std = np.mean(values), np.std(values)
     print(f"{param}: {mean:.4f} ± {std:.4f}")
+
