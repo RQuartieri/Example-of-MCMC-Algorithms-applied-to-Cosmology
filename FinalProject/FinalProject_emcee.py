@@ -2,10 +2,10 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-import pandas as pd  # Import pandas for DataFrame functionality
+import pandas as pd
 from numcosmo_py import Nc, Ncm
-import emcee 
-
+import emcee
+import time  # For timing
 
 # Initialize the NumCosmo library
 Ncm.cfg_init()
@@ -106,10 +106,18 @@ initial_positions = initial_params + 1e-4 * np.random.randn(nwalkers, ndim)
 # Create the sampler
 sampler = emcee.EnsembleSampler(nwalkers, ndim, log_posterior)
 
+# Start the timer
+start_time = time.time()
+
 # Run the MCMC sampler
 print("Running MCMC...")
 sampler.run_mcmc(initial_positions, nsteps, progress=True)
 print("MCMC complete.")
+
+# Calculate time per step
+total_time = time.time() - start_time
+time_per_step = total_time / (nsteps * nwalkers)  # Time per step per walker
+print(f"Time per step: {time_per_step:.6f} seconds")
 
 # Extract the chains
 samples = sampler.get_chain()
@@ -124,6 +132,21 @@ samples_df["Omegax"] = 1.0 - samples_df["Omegab"] - samples_df["Omegac"]
 
 # Compute mean and standard deviation for each parameter
 param_estimates = {param: (np.mean(samples_df[param]), np.std(samples_df[param])) for param in param_names + ["Omegax"]}
+
+# Compute autocorrelation time
+try:
+    autocorr_time = sampler.get_autocorr_time()
+    print("\nAutocorrelation time for each parameter (in steps):")
+    for i, param in enumerate(param_names):
+        print(f"{param}: {autocorr_time[i]:.2f} steps")
+
+    # Compute autocorrelation time in seconds
+    autocorr_times_seconds = {param: autocorr_time[i] * time_per_step for i, param in enumerate(param_names)}
+    print("\nAutocorrelation time for each parameter (in seconds):")
+    for param, time_sec in autocorr_times_seconds.items():
+        print(f"{param}: {time_sec:.4f} seconds")
+except Exception as e:
+    print(f"Could not compute autocorrelation time: {e}")
 
 # Plot 1: Marginal Distributions with Legends
 plt.figure(figsize=(12, 8))

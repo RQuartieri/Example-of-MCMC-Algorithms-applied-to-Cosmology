@@ -2,8 +2,9 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-import pandas as pd  # Import pandas for DataFrame functionality
+import pandas as pd
 from numcosmo_py import Nc, Ncm
+import time  # For timing
 
 # Initialize the NumCosmo library
 Ncm.cfg_init()
@@ -86,6 +87,9 @@ def enforce_omega_constraints(params):
     params["Omegax"] = 1.0 - params["Omegab"] - params["Omegac"]
     return True  # Accept the proposal
 
+# Start the timer
+start_time = time.time()
+
 def metropolis_hastings(iterations):
     for _ in range(iterations):
         # Propose new parameters
@@ -120,6 +124,11 @@ def metropolis_hastings(iterations):
 
 metropolis_hastings(iterations)
 
+# Calculate time per step
+total_time = time.time() - start_time
+time_per_step = total_time / iterations
+print(f"Time per step: {time_per_step:.6f} seconds")
+
 # Convert chains to numpy arrays
 param_samples = {param: np.array(values) for param, values in param_chains.items()}
 
@@ -131,6 +140,38 @@ samples_df = pd.DataFrame(samples_array, columns=params_to_estimate)
 
 # Compute mean and standard deviation for each parameter
 param_estimates = {param: (np.mean(values), np.std(values)) for param, values in param_samples.items()}
+
+# Manual autocorrelation function
+def autocorrelation_function(chain, max_lag=1000):
+    """Compute the autocorrelation function (ACF) for a given chain."""
+    mean = np.mean(chain)
+    var = np.var(chain)
+    acf_values = []
+    for lag in range(max_lag + 1):
+        if lag >= len(chain):
+            break
+        acf_lag = np.mean((chain[:len(chain) - lag] - mean) * (chain[lag:] - mean)) / var
+        acf_values.append(acf_lag)
+    return np.array(acf_values)
+
+# Compute autocorrelation time for each parameter
+autocorr_times = {}
+for param in params_to_estimate:
+    autocorr = autocorrelation_function(param_samples[param], max_lag=1000)  # Compute autocorrelation function
+    autocorr_times[param] = 1 + 2 * np.sum(autocorr[1:])  # Estimate autocorrelation time
+
+# Print autocorrelation times in steps
+print("\nAutocorrelation time for each parameter (in steps):")
+for param, time_steps in autocorr_times.items():
+    print(f"{param}: {time_steps:.2f} steps")
+
+# Compute autocorrelation time in seconds
+autocorr_times_seconds = {param: time_steps * time_per_step for param, time_steps in autocorr_times.items()}
+
+# Print autocorrelation times in seconds
+print("\nAutocorrelation time for each parameter (in seconds):")
+for param, time_sec in autocorr_times_seconds.items():
+    print(f"{param}: {time_sec:.4f} seconds")
 
 # Plot 1: Marginal Distributions with Legends
 plt.figure(figsize=(12, 8))
@@ -169,6 +210,5 @@ plt.savefig("FinalProject/Figs/parameter_correlations.png", dpi=300)
 # Print results
 print("\nEstimated Cosmological Parameters:")
 for param, values in param_samples.items():
-    mean, std = np.mean(values), np.std(values)
+    mean, std = np.mean(values), np.std(values)  # Calculate mean and standard deviation
     print(f"{param}: {mean:.4f} ± {std:.4f}")
-
