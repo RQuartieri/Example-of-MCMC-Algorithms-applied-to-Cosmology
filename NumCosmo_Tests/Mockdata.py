@@ -7,8 +7,8 @@ Ncm.cfg_init()
 
 # 1. Define a fiducial cosmological model (ΛCDM)
 fiducial_cosmo = Nc.HICosmoDEXcdm.new()
-#print("# Model parameters: ")
-#fiducial_cosmo.params_log_all()
+print("# Model parameters: ")
+fiducial_cosmo.params_log_all()
 
 #fiducial_cosmo.props.Omegab = 0.05  # Baryon density
 #fiducial_cosmo.props.Omegac = 0.25  # Cold dark matter density
@@ -17,7 +17,7 @@ fiducial_cosmo = Nc.HICosmoDEXcdm.new()
 #fiducial_cosmo.props.Tgamma0 = 2.7255  # CMB temperature
 
 # 2. Create a distance object and prepare it for the fiducial cosmology
-dist = Nc.Distance.new(10.0)  # Maximum redshift for distance calculations
+dist = Nc.Distance.new(2) # Maximum redshift for distance calculations
 dist.prepare(fiducial_cosmo)
 
 # 3. Generate a range of redshifts

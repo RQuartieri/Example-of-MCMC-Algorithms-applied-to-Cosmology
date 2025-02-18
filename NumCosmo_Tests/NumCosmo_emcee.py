@@ -167,7 +167,7 @@ for i, param in enumerate(param_names + ["Omegax"]):
     plt.legend()
 
 plt.tight_layout()
-plt.savefig("FinalProject/Figs/parameter_distributions_emcee.png", dpi=300)
+plt.savefig("NumCosmo_Tests/Figs/parameter_distributions_emcee.png", dpi=300)
 #plt.show()
 
 # Plot 2: Pairwise Correlations
@@ -179,7 +179,7 @@ sns.pairplot(
 )
 plt.suptitle("Pairwise Correlations", y=1.02)
 plt.tight_layout()
-plt.savefig("FinalProject/Figs/parameter_correlations_emcee.png", dpi=300) 
+plt.savefig("NumCosmo_Tests/Figs/parameter_correlations_emcee.png", dpi=300) 
 #plt.show()
 
 # Print results
