@@ -59,8 +59,8 @@ def stretch_move_sampling(iterations, n_walkers, init_H0=70, init_Omega_m=0.3):
                 j = np.random.randint(n_walkers)
 
             # Generate a random stretch factor
-            z = np.random.uniform(1/a, a)
-            g = 1/np.sqrt(z)
+            z = (a - 1) * np.random.rand() + 1
+            z = z**2 / a  # Scale the stretch factor
 
             # Propose a new position
             new_theta = walkers[j] + z * (walkers[k] - walkers[j])
@@ -68,7 +68,7 @@ def stretch_move_sampling(iterations, n_walkers, init_H0=70, init_Omega_m=0.3):
             # Compute the log-likelihood ratio
             logL_new = log_likelihood(new_theta)
             logL_old = log_likelihood(walkers[k])
-            accept_ratio = g**(ndim - 1) * np.exp(logL_new - logL_old)
+            accept_ratio = z**(ndim - 1) * np.exp(logL_new - logL_old)
 
             # Accept or reject the proposal
             if np.random.rand() < accept_ratio:

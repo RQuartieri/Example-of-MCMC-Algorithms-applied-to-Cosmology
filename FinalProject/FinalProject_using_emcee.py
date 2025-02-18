@@ -105,59 +105,6 @@ plt.legend()
 plt.title(f"Autocorrelation time ($\\Omega_m$): {tau_Omega_m:.2f}")
 
 plt.tight_layout()
-plt.show()
-
-# Corner plot (for completeness)
-fig = corner.corner(samples, labels=["H0", "Omega_m"], truths=[true_H0, true_Omega_m])
-plt.show()
-
-# Extract the samples and calculate statistics
-H0_samples = samples[:, 0]
-Omega_m_samples = samples[:, 1]
-
-H0_mean = np.mean(H0_samples)
-H0_std = np.std(H0_samples)
-Omega_m_mean = np.mean(Omega_m_samples)
-Omega_m_std = np.std(Omega_m_samples)
-
-# Calculate the autocorrelation time
-tau_H0 = sampler.get_autocorr_time(tol=0)[0]
-tau_Omega_m = sampler.get_autocorr_time(tol=0)[1]
-
-# Plot results
-plt.figure(figsize=(18, 5))
-
-# Histogram of H0
-plt.subplot(1, 3, 1)
-plt.hist(H0_samples, bins=30, density=True, alpha=0.7)
-plt.axvline(true_H0, color='r', linestyle='--', label=f"True H0={true_H0}")
-plt.axvline(H0_mean, color='k', linestyle='-', label=f"Estimated H0={H0_mean:.2f} ± {H0_std:.2f}")
-plt.xlabel("$H_0$")
-plt.ylabel("Density")
-plt.legend()
-plt.title(f"Autocorrelation time (H0): {tau_H0:.2f}")
-
-# Scatter plot of Omega_m vs H0
-plt.subplot(1, 3, 2)
-plt.scatter(H0_samples, Omega_m_samples, s=1, alpha=0.5)
-plt.axhline(true_Omega_m, color='r', linestyle='--', label=f"True $\\Omega_m$={true_Omega_m}")
-plt.axhline(Omega_m_mean, color='k', linestyle='-', label=f"Estimated $\\Omega_m$={Omega_m_mean:.2f} ± {Omega_m_std:.2f}")
-plt.xlabel("$H_0$")
-plt.ylabel("$\\Omega_m$")
-plt.legend()
-plt.title(f"Autocorrelation time (H0): {tau_H0:.2f}")
-
-# Histogram of Omega_m
-plt.subplot(1, 3, 3)
-plt.hist(Omega_m_samples, bins=30, density=True, alpha=0.7, color='orange')
-plt.axvline(true_Omega_m, color='r', linestyle='--', label=f"True $\\Omega_m$={true_Omega_m}")
-plt.axvline(Omega_m_mean, color='k', linestyle='-', label=f"Estimated $\\Omega_m$={Omega_m_mean:.2f} ± {Omega_m_std:.2f}")
-plt.xlabel("$\\Omega_m$")
-plt.ylabel("Density")
-plt.legend()
-plt.title(f"Autocorrelation time ($\\Omega_m$): {tau_Omega_m:.2f}")
-
-plt.tight_layout()
 plt.savefig("FinalProject/figs/parameter_distribution_emcee.png", dpi=300)
 #plt.show()
 
