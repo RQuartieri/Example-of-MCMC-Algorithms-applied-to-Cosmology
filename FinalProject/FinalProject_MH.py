@@ -66,9 +66,6 @@ def metropolis_hastings(iterations, init_H0=70, init_Omega_m=0.3, step_size=1.0)
     return np.array(H0_chain), np.array(Omega_m_chain)
 
 def autocorrelation_time(chain, max_lag=None):
-    """
-    Calculate the autocorrelation time using FFT for numerical stability.
-    """
     n = len(chain)
     if max_lag is None:
         max_lag = n // 2
@@ -88,56 +85,92 @@ def autocorrelation_time(chain, max_lag=None):
     tau = 1 + 2 * np.sum(autocorr[:max_lag])
     return tau
 
+def effective_sample_size(chain, max_lag=None):
+    n = len(chain)
+    tau = autocorrelation_time(chain, max_lag)  # Pass only chain and max_lag
+    ess = n / (1 + 2 * tau)
+    return ess
+
 # Run MCMC
-iterations = 249999
+iterations = 299999
 H0_sample, Omega_m_sample = metropolis_hastings(iterations)
 
-print(f"{len(H0_sample)}")
-print(f"{len(Omega_m_sample)}")
+print(f"Final sample size H0: {len(H0_sample)}")
+print(f"Final sample size Omega_m: {len(Omega_m_sample)}")
 
-# Calculate autocorrelation time
-tau = autocorrelation_time(H0_sample[1000:])
-print(f"Autocorrelation time: {tau:.2f}")
+# Discard the first 20% of the chains as burn-in
+burn_in = int(0.2 * len(H0_sample))
+H0_burnt = H0_sample[burn_in:]
+Omega_m_burnt = Omega_m_sample[burn_in:]
 
-# Calculate mean and standard deviation for H0 and Omega_m
-H0_mean = np.mean(H0_sample[1000:])
-H0_std = np.std(H0_sample[1000:])
-Omega_m_mean = np.mean(Omega_m_sample[1000:])
-Omega_m_std = np.std(Omega_m_sample[1000:])
+# Calculate mean and standard deviation for H0 and Omega_m after burn-in
+H0_mean = np.mean(H0_burnt)
+H0_std = np.std(H0_burnt)
+Omega_m_mean = np.mean(Omega_m_burnt)
+Omega_m_std = np.std(Omega_m_burnt)
 
-# Plot results
+# Calculate autocorrelation time and ESS after burn-in
+tau_H0 = autocorrelation_time(H0_burnt)
+tau_Omega_m = autocorrelation_time(Omega_m_burnt)
+
+ess_H0 = effective_sample_size(H0_burnt)
+ess_Omega_m = effective_sample_size(Omega_m_burnt)
+
+# Print results
+print(f"Final sample size after burn-in (H0): {len(H0_burnt)}")
+print(f"Final sample size after burn-in (Omega_m): {len(Omega_m_burnt)}")
+print(f"Autocorrelation time (H0): {tau_H0:.2f}")
+print(f"Autocorrelation time (Omega_m): {tau_Omega_m:.2f}")
+print(f"Effective Sample Size (H0): {ess_H0:.2f}")
+print(f"Effective Sample Size (Omega_m): {ess_Omega_m:.2f}")
+
+# Plot results with burn-in
 plt.figure(figsize=(18, 5))
 
 # Histogram of H0
 plt.subplot(1, 3, 1)
-plt.hist(H0_sample[1000:], bins=30, density=True, alpha=0.7)
+plt.hist(H0_burnt, bins=30, density=True, alpha=0.7, color='blue', label="H0 Samples")
 plt.axvline(true_H0, color='r', linestyle='--', label=f"True H0={true_H0}")
 plt.axvline(H0_mean, color='k', linestyle='-', label=f"Estimated H0={H0_mean:.2f} ± {H0_std:.2f}")
 plt.xlabel("$H_0$")
 plt.ylabel("Density")
 plt.legend()
-plt.title(f"Autocorrelation time: {tau:.2f}")
+plt.title(f"H0 Distribution (Autocorrelation Time: {tau_H0:.2f})")
 
-# Scatter plot of Omega_m vs H0
-plt.subplot(1, 3, 2)
-plt.scatter(H0_sample[1000:], Omega_m_sample[1000:], s=1, alpha=0.5)
-plt.axhline(true_Omega_m, color='r', linestyle='--', label=f"True $\\Omega_m$={true_Omega_m}")
-plt.axhline(Omega_m_mean, color='k', linestyle='-', label=f"Estimated $\\Omega_m$={Omega_m_mean:.2f} ± {Omega_m_std:.2f}")
-plt.xlabel("$H_0$")
-plt.ylabel("$\\Omega_m$")
-plt.legend()
-plt.title(f"Autocorrelation time: {tau:.2f}")
+# Add additional information as text
+plt.text(0.05, 0.95, f"Sample Size: {len(H0_burnt)}\nESS: {ess_H0:.2f}",
+         transform=plt.gca().transAxes, verticalalignment='top', bbox=dict(facecolor='white', alpha=0.8))
 
 # Histogram of Omega_m
 plt.subplot(1, 3, 3)
-plt.hist(Omega_m_sample[1000:], bins=30, density=True, alpha=0.7, color='orange')
+plt.hist(Omega_m_burnt, bins=30, density=True, alpha=0.7, color='orange', label="$\\Omega_m$ Samples")
 plt.axvline(true_Omega_m, color='r', linestyle='--', label=f"True $\\Omega_m$={true_Omega_m}")
 plt.axvline(Omega_m_mean, color='k', linestyle='-', label=f"Estimated $\\Omega_m$={Omega_m_mean:.2f} ± {Omega_m_std:.2f}")
 plt.xlabel("$\\Omega_m$")
 plt.ylabel("Density")
 plt.legend()
-plt.title(f"Autocorrelation time: {tau:.2f}")
+plt.title(f"$\\Omega_m$ Distribution (Autocorrelation Time: {tau_Omega_m:.2f})")
+
+# Add additional information as text
+plt.text(0.05, 0.95, f"Sample Size: {len(Omega_m_burnt)}\nESS: {ess_Omega_m:.2f}",
+         transform=plt.gca().transAxes, verticalalignment='top', bbox=dict(facecolor='white', alpha=0.8))
+
+# Scatter plot of Omega_m vs H0
+plt.subplot(1, 3, 2)
+plt.scatter(H0_burnt, Omega_m_burnt, s=1, alpha=0.5, color='green', label="Samples")
+plt.axhline(true_Omega_m, color='r', linestyle='--', label=f"True $\\Omega_m$={true_Omega_m}")
+plt.axhline(Omega_m_mean, color='k', linestyle='-', label=f"Estimated $\\Omega_m$={Omega_m_mean:.2f} ± {Omega_m_std:.2f}")
+plt.axvline(true_H0, color='r', linestyle='--', label=f"True H0={true_H0}")
+plt.axvline(H0_mean, color='k', linestyle='-', label=f"Estimated H0={H0_mean:.2f} ± {H0_std:.2f}")
+plt.xlabel("$H_0$")
+plt.ylabel("$\\Omega_m$")
+plt.legend()
+plt.title(f"$H_0$ vs $\\Omega_m$ (Autocorrelation Time: {tau_H0:.2f})")
+
+# Add additional information as text
+plt.text(0.05, 0.95, f"Sample Size: {len(H0_burnt)}\nESS (H0): {ess_H0:.2f}\nESS ($\\Omega_m$): {ess_Omega_m:.2f}",
+         transform=plt.gca().transAxes, verticalalignment='top', bbox=dict(facecolor='white', alpha=0.8))
 
 plt.tight_layout()
-plt.savefig("FinalProject/figs/parameter_distribution_MH.png", dpi=300)
+plt.savefig("FinalProject/figs/parameter_distribution_MH_burnin.png", dpi=300)
 #plt.show()

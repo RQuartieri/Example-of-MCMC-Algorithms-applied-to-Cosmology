@@ -105,9 +105,16 @@ def autocorrelation_time(chain, max_lag=None, truncate_threshold=0.01):
 
     return tau
 
+def effective_sample_size(chain, max_lag=None, truncate_threshold=0.01):
+    n = len(chain)
+    tau = autocorrelation_time(chain, max_lag, truncate_threshold)
+    ess = n / (1 + 2 * tau)
+    return ess
+
+
 # Run MCMC
-iterations = 5000
-n_walkers = 50
+iterations = 10000
+n_walkers = 30
 H0_chains, Omega_m_chains = stretch_move_sampling(iterations, n_walkers)
 
 # Discard burn-in (first 20% of the chain)
@@ -122,17 +129,26 @@ tau_Omega_m = np.mean([autocorrelation_time(Omega_m_chains[:, w]) for w in range
 print(f"Autocorrelation time for H0: {tau_H0}")
 print(f"Autocorrelation time for Omega_m: {tau_Omega_m}")
 
+# Compute ESS for each walker's chain
+ess_H0 = [effective_sample_size(H0_chains[:, w]) for w in range(n_walkers)]
+ess_Omega_m = [effective_sample_size(Omega_m_chains[:, w]) for w in range(n_walkers)]
+avg_ess_H0 = np.mean(ess_H0)
+avg_ess_Omega_m = np.mean(ess_Omega_m)
+print(f"Average ESS for H0: {avg_ess_H0}")
+print(f"Average ESS for Omega_m: {avg_ess_Omega_m}")
+
 # Flatten the chains
 H0_samples = H0_chains.flatten()  # Combine all walkers' chains
 Omega_m_samples = Omega_m_chains.flatten()  # Combine all walkers' chains
-print(f"{len(H0_samples)}")
-print(f"{len(Omega_m_samples)}")
+print(f"Final sample size H0: {len(H0_samples)}")
+print(f"Final sample size Omega_m: {len(Omega_m_samples)}")
 
 # Calculate mean and standard deviation for H0 and Omega_m
 H0_mean = np.mean(H0_samples)
 H0_std = np.std(H0_samples)
 Omega_m_mean = np.mean(Omega_m_samples)
 Omega_m_std = np.std(Omega_m_samples)
+
 
 # Plot results
 plt.figure(figsize=(18, 5))
