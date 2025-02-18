@@ -67,14 +67,7 @@ def metropolis_hastings(iterations, init_H0=70, init_Omega_m=0.3, step_size=1.0)
 
 def autocorrelation_time(chain, max_lag=None):
     """
-    Calculate the autocorrelation time for an MCMC chain.
-
-    Parameters:
-        chain (ndarray): The MCMC chain for a single parameter (1D array).
-        max_lag (int): Maximum lag to compute the autocorrelation. If None, use len(chain)//2.
-
-    Returns:
-        float: The autocorrelation time.
+    Calculate the autocorrelation time using FFT for numerical stability.
     """
     n = len(chain)
     if max_lag is None:
@@ -83,10 +76,8 @@ def autocorrelation_time(chain, max_lag=None):
     # Normalize the chain
     chain = chain - np.mean(chain)
 
-    # Compute the autocorrelation function
-    autocorr = np.zeros(max_lag)
-    for t in range(max_lag):
-        autocorr[t] = np.sum(chain[:n - t] * chain[t:]) / np.sum(chain**2)
+    # Compute the autocorrelation function using FFT
+    autocorr = np.correlate(chain, chain, mode='full')[n - 1:] / np.sum(chain**2)
 
     # Truncate the sum when autocorrelation becomes negligible
     truncate_lag = np.where(np.abs(autocorr) < 0.05)[0]
@@ -98,8 +89,11 @@ def autocorrelation_time(chain, max_lag=None):
     return tau
 
 # Run MCMC
-iterations = 10000
+iterations = 249999
 H0_sample, Omega_m_sample = metropolis_hastings(iterations)
+
+print(f"{len(H0_sample)}")
+print(f"{len(Omega_m_sample)}")
 
 # Calculate autocorrelation time
 tau = autocorrelation_time(H0_sample[1000:])

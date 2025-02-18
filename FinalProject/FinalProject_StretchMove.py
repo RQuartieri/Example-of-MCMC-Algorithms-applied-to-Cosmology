@@ -36,7 +36,7 @@ def log_likelihood(theta):
     chi2 = np.sum((mu_data - mu_model) ** 2 / 0.2**2)
     return -0.5 * chi2
 
-# Stretch Move sampling
+
 def stretch_move_sampling(iterations, n_walkers, init_H0=70, init_Omega_m=0.3):
     # Initialize walkers
     ndim = 2  # Number of parameters (H0, Omega_m)
@@ -44,9 +44,9 @@ def stretch_move_sampling(iterations, n_walkers, init_H0=70, init_Omega_m=0.3):
     walkers[:, 0] = init_H0 + 1e-4 * np.random.randn(n_walkers)  # H0
     walkers[:, 1] = init_Omega_m + 1e-4 * np.random.randn(n_walkers)  # Omega_m
 
-    # Initialize chains
-    H0_chain = []
-    Omega_m_chain = []
+    # Initialize chains for each walker
+    H0_chains = np.zeros((iterations, n_walkers))  # Shape: (iterations, n_walkers)
+    Omega_m_chains = np.zeros((iterations, n_walkers))  # Shape: (iterations, n_walkers)
 
     # Stretch Move parameters
     a = 2.0  # Scale factor for the stretch move
@@ -63,36 +63,26 @@ def stretch_move_sampling(iterations, n_walkers, init_H0=70, init_Omega_m=0.3):
             z = z**2 / a  # Scale the stretch factor
 
             # Propose a new position
-            new_theta = walkers[j] + z * (walkers[k] - walkers[j])
+            y = walkers[j] + z * (walkers[k] - walkers[j])
 
             # Compute the log-likelihood ratio
-            logL_new = log_likelihood(new_theta)
+            logL_new = log_likelihood(y)
             logL_old = log_likelihood(walkers[k])
             accept_ratio = z**(ndim - 1) * np.exp(logL_new - logL_old)
 
             # Accept or reject the proposal
             if np.random.rand() < accept_ratio:
-                walkers[k] = new_theta
+                walkers[k] = y
             else:
                 walkers[k] = walkers[k]
 
         # Save the current state of the walkers
-        H0_chain.extend(walkers[:, 0])
-        Omega_m_chain.extend(walkers[:, 1])
+        H0_chains[i, :] = walkers[:, 0]  # Save all walkers' H0 values
+        Omega_m_chains[i, :] = walkers[:, 1]  # Save all walkers' Omega_m values
 
-    return np.array(H0_chain), np.array(Omega_m_chain)
+    return H0_chains, Omega_m_chains
 
-def autocorrelation_time(chain, max_lag=None):
-    """
-    Calculate the autocorrelation time for an MCMC chain.
-
-    Parameters:
-        chain (ndarray): The MCMC chain for a single parameter (1D array).
-        max_lag (int): Maximum lag to compute the autocorrelation. If None, use len(chain)//2.
-
-    Returns:
-        float: The autocorrelation time.
-    """
+def autocorrelation_time(chain, max_lag=None, truncate_threshold=0.01):
     n = len(chain)
     if max_lag is None:
         max_lag = n // 2
@@ -106,32 +96,43 @@ def autocorrelation_time(chain, max_lag=None):
         autocorr[t] = np.sum(chain[:n - t] * chain[t:]) / np.sum(chain**2)
 
     # Truncate the sum when autocorrelation becomes negligible
-    truncate_lag = np.where(np.abs(autocorr) < 0.05)[0]
+    truncate_lag = np.where(np.abs(autocorr) < truncate_threshold)[0]
     if len(truncate_lag) > 0:
         max_lag = truncate_lag[0]
 
-    # Calculate the autocorrelation time
+#     # Calculate the autocorrelation time
     tau = 1 + 2 * np.sum(autocorr[:max_lag])
+
     return tau
 
 # Run MCMC
-iterations = 1000
-n_walkers = 32
-H0_samples, Omega_m_samples = stretch_move_sampling(iterations, n_walkers)
+iterations = 5000
+n_walkers = 50
+H0_chains, Omega_m_chains = stretch_move_sampling(iterations, n_walkers)
 
-# Discard burn-in (first 1000 samples)
-H0_samples = H0_samples[1000:]
-Omega_m_samples = Omega_m_samples[1000:]
+# Discard burn-in (first 20% of the chain)
+burn_in = iterations // 5
+H0_chains = H0_chains[burn_in:, :]
+Omega_m_chains = Omega_m_chains[burn_in:, :]
+
+# Compute autocorrelation time for each walker
+tau_H0 = np.mean([autocorrelation_time(H0_chains[:, w]) for w in range(n_walkers)])
+tau_Omega_m = np.mean([autocorrelation_time(Omega_m_chains[:, w]) for w in range(n_walkers)])
+
+print(f"Autocorrelation time for H0: {tau_H0}")
+print(f"Autocorrelation time for Omega_m: {tau_Omega_m}")
+
+# Flatten the chains
+H0_samples = H0_chains.flatten()  # Combine all walkers' chains
+Omega_m_samples = Omega_m_chains.flatten()  # Combine all walkers' chains
+print(f"{len(H0_samples)}")
+print(f"{len(Omega_m_samples)}")
 
 # Calculate mean and standard deviation for H0 and Omega_m
 H0_mean = np.mean(H0_samples)
 H0_std = np.std(H0_samples)
 Omega_m_mean = np.mean(Omega_m_samples)
 Omega_m_std = np.std(Omega_m_samples)
-
-# Calculate the autocorrelation time
-tau_H0 = autocorrelation_time(H0_samples)
-tau_Omega_m = autocorrelation_time(Omega_m_samples)
 
 # Plot results
 plt.figure(figsize=(18, 5))

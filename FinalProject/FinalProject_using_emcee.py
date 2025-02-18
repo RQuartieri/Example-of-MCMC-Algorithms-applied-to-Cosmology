@@ -37,7 +37,7 @@ def log_likelihood(theta):
     chi2 = np.sum((mu_data - mu_model) ** 2 / 0.2**2)
     return -0.5 * chi2
 
-nwalkers = 32
+nwalkers = 50
 ndim = 2
 
 sampler = emcee.EnsembleSampler(nwalkers, ndim, log_likelihood)
@@ -48,7 +48,7 @@ initial_Omega_m = np.random.normal(0.3, 0.1, nwalkers)  # Centered around 0.3 wi
 initial_positions = np.vstack((initial_H0, initial_Omega_m)).T
 
 # Run the MCMC sampler
-nsteps = 2000  # Number of steps to run the sampler
+nsteps = 5000  # Number of steps to run the sampler
 sampler.run_mcmc(initial_positions, nsteps, progress=True)
 
 # Calculate the autocorrelation time
@@ -61,6 +61,9 @@ samples = sampler.get_chain(flat=True)
 # Extract the samples and calculate statistics
 H0_samples = samples[:, 0]
 Omega_m_samples = samples[:, 1]
+
+print(f"{len(H0_samples)}")
+print(f"{len(Omega_m_samples)}")
 
 H0_mean = np.mean(H0_samples)
 H0_std = np.std(H0_samples)
