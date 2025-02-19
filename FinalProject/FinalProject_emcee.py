@@ -22,7 +22,7 @@ def distance_modulus(z, H0, Omega_m):
 
 # Generate synthetic data (mock supernova observations)
 np.random.seed(42)
-z_data = np.linspace(0.01, 1.5, 30)  # Redshifts of supernovae
+z_data = np.linspace(0.01, 2.0, 100)  # Redshifts of supernovae
 true_H0 = 70
 true_Omega_m = 0.3
 mu_data = np.array([distance_modulus(z, true_H0, true_Omega_m) for z in z_data])
