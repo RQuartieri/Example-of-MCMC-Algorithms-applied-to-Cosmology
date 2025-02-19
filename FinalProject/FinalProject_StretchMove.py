@@ -1,6 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import quad
+import time
+
+start_time = time.time()
 
 # Constants
 c = 299792.458  # Speed of light in km/s
@@ -200,3 +203,8 @@ plt.text(0.05, 0.95, f"Sample Size: {len(Omega_m_samples)}\nESS: {avg_ess_Omega_
 plt.tight_layout()
 plt.savefig("FinalProject/figs/parameter_distribution_StretchMove.png", dpi=300)
 #plt.show()
+
+
+end_time = time.time()
+execution_time = end_time - start_time
+print(f"Tempo de execução: {execution_time:.2f} segundos")

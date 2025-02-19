@@ -3,6 +3,9 @@ import matplotlib.pyplot as plt
 from scipy.integrate import quad
 import emcee
 from multiprocessing import Pool
+import time
+
+start_time = time.time()
 
 # Constants
 c = 299792.458  # Speed of light in km/s
@@ -139,3 +142,8 @@ for i in range(ndim):
 axes[-1].set_xlabel("Step number")
 plt.savefig("FinalProject/figs/chains_emcee.png", dpi=300)
 #plt.show()
+
+
+end_time = time.time()
+execution_time = end_time - start_time
+print(f"Tempo de execução: {execution_time:.2f} segundos")

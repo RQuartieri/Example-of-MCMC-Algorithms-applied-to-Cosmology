@@ -1,7 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import quad
+import time
 
+start_time = time.time()
 # Metropolis-Hastings
 
 # Constants
@@ -174,3 +176,8 @@ plt.text(0.05, 0.95, f"Sample Size: {len(H0_burnt)}\nESS (H0): {ess_H0:.2f}\nESS
 plt.tight_layout()
 plt.savefig("FinalProject/figs/parameter_distribution_MH_burnin.png", dpi=300)
 #plt.show()
+
+
+end_time = time.time()
+execution_time = end_time - start_time
+print(f"Tempo de execução: {execution_time:.2f} segundos")
