@@ -155,33 +155,47 @@ plt.figure(figsize=(18, 5))
 
 # Histogram of H0
 plt.subplot(1, 3, 1)
-plt.hist(H0_samples, bins=30, density=True, alpha=0.7)
+plt.hist(H0_samples, bins=30, density=True, alpha=0.7, color='blue', label="H0 Samples")
 plt.axvline(true_H0, color='r', linestyle='--', label=f"True H0={true_H0}")
 plt.axvline(H0_mean, color='k', linestyle='-', label=f"Estimated H0={H0_mean:.2f} ± {H0_std:.2f}")
-plt.xlabel("$H_0$")
+plt.xlabel("H0 (km/s/Mpc)")
 plt.ylabel("Density")
 plt.legend()
-plt.title(f"Autocorrelation time (H0): {tau_H0:.2f}")
+plt.title(f"H0 Distribution (Autocorrelation Time: {tau_H0:.2f})")
+
+# Add additional information as text
+plt.text(0.05, 0.95, f"Sample Size: {len(H0_samples)}\nESS: {avg_ess_H0:.2f}",
+         transform=plt.gca().transAxes, verticalalignment='top', bbox=dict(facecolor='white', alpha=0.8))
 
 # Scatter plot of Omega_m vs H0
 plt.subplot(1, 3, 2)
-plt.scatter(H0_samples, Omega_m_samples, s=1, alpha=0.5)
+plt.scatter(H0_samples, Omega_m_samples, s=1, alpha=0.5, color='green', label="Samples")
 plt.axhline(true_Omega_m, color='r', linestyle='--', label=f"True $\\Omega_m$={true_Omega_m}")
 plt.axhline(Omega_m_mean, color='k', linestyle='-', label=f"Estimated $\\Omega_m$={Omega_m_mean:.2f} ± {Omega_m_std:.2f}")
+plt.axvline(true_H0, color='r', linestyle='--', label=f"True H0={true_H0}")
+plt.axvline(H0_mean, color='k', linestyle='-', label=f"Estimated H0={H0_mean:.2f} ± {H0_std:.2f}")
 plt.xlabel("$H_0$")
 plt.ylabel("$\\Omega_m$")
 plt.legend()
-plt.title(f"Autocorrelation time (H0): {tau_H0:.2f}")
+plt.title(f"$H_0$ vs $\\Omega_m$ (Autocorrelation Time: {tau_H0:.2f})")
+
+# Add additional information as text
+plt.text(0.05, 0.95, f"Sample Size: {len(H0_samples)}\nESS (H0): {avg_ess_H0:.2f}\nESS ($\\Omega_m$): {avg_ess_Omega_m:.2f}",
+         transform=plt.gca().transAxes, verticalalignment='top', bbox=dict(facecolor='white', alpha=0.8))
 
 # Histogram of Omega_m
 plt.subplot(1, 3, 3)
-plt.hist(Omega_m_samples, bins=30, density=True, alpha=0.7, color='orange')
+plt.hist(Omega_m_samples, bins=30, density=True, alpha=0.7, color='orange', label="$\\Omega_m$ Samples")
 plt.axvline(true_Omega_m, color='r', linestyle='--', label=f"True $\\Omega_m$={true_Omega_m}")
 plt.axvline(Omega_m_mean, color='k', linestyle='-', label=f"Estimated $\\Omega_m$={Omega_m_mean:.2f} ± {Omega_m_std:.2f}")
 plt.xlabel("$\\Omega_m$")
 plt.ylabel("Density")
 plt.legend()
-plt.title(f"Autocorrelation time ($\\Omega_m$): {tau_Omega_m:.2f}")
+plt.title(f"$\\Omega_m$ Distribution (Autocorrelation Time: {tau_Omega_m:.2f})")
+
+# Add additional information as text
+plt.text(0.05, 0.95, f"Sample Size: {len(Omega_m_samples)}\nESS: {avg_ess_Omega_m:.2f}",
+         transform=plt.gca().transAxes, verticalalignment='top', bbox=dict(facecolor='white', alpha=0.8))
 
 plt.tight_layout()
 plt.savefig("FinalProject/figs/parameter_distribution_StretchMove.png", dpi=300)
