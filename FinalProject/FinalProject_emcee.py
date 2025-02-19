@@ -82,7 +82,7 @@ plt.subplot(1, 3, 1)
 plt.hist(H0_samples, bins=30, density=True, alpha=0.7, color='blue', label="H0 Samples")
 plt.axvline(true_H0, color='r', linestyle='--', label=f"True H0={true_H0}")
 plt.axvline(H0_mean, color='k', linestyle='-', label=f"Estimated H0={H0_mean:.2f} ± {H0_std:.2f}")
-plt.xlabel("$H_0$ (km s$^{-1}$ Mpc$^{-1}$)")  # Corrected xlabel
+plt.xlabel("$H_0$ (km/s/Mpc)")
 plt.ylabel("Density")
 plt.legend()
 plt.title(f"$H_0$ Distribution via emcee (Autocorrelation Time: {tau_H0:.2f})")
